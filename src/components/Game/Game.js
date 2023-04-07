@@ -1,15 +1,54 @@
-import React from 'react';
+import React, {useState} from 'react';
+import GuessInput from '../GuessInput/GuessInput'
+import Guesses from '../Guesses/Guesses'
+import NUM_OF_GUESSES_ALLOWED from '../../constants'
+import { checkGuess } from '../../game-helpers'
 
-import { sample } from '../../utils';
-import { WORDS } from '../../data';
+function Game({ setWin, setUserGuesses, userGuesses, answer }) {
+  const [isDisabled, setIsDisabled] = useState(false);
+  const [guessWithStatuses, setGuessWithStatuses] = useState([])
 
-// Pick a random word on every pageload.
-const answer = sample(WORDS);
-// To make debugging easier, we'll log the solution in the console.
-console.info({ answer });
+  const handleIncomingGuess = (guess) => {
+    const updateUserGuesses = userGuesses < NUM_OF_GUESSES_ALLOWED && userGuesses + 1
+    checkGuessStatus(guess)
+    checkIfUserWon(guess)
+    setUserGuesses(updateUserGuesses)
+  }
 
-function Game() {
-  return <>Put a game here!</>;
+  const checkGuessStatus = (guess) => {
+    const checkGuessResults = []
+    const newGuessWithStatuses = [...guessWithStatuses]
+    checkGuess(guess, answer).map(item => checkGuessResults.push(item))
+    newGuessWithStatuses.push({checkGuessResults: checkGuessResults, guess: guess})
+    setGuessWithStatuses(newGuessWithStatuses)
+  }
+
+  const handleDisable = () => {
+    if(userGuesses === NUM_OF_GUESSES_ALLOWED) {
+      setIsDisabled(true)
+    }
+  }
+
+  const checkIfUserWon = (guess) => {
+    if(guess === answer) {
+      setWin(true)
+      setIsDisabled(true)
+    }
+  }
+
+
+  return (
+    <div className="wrapper">
+      <Guesses 
+        guessWithStatuses={guessWithStatuses}
+      />
+      <GuessInput 
+        handleIncomingGuess={handleIncomingGuess}
+        isDisabled={isDisabled}
+        handleDisable={handleDisable}
+      />
+    </div>
+  )
 }
 
 export default Game;
